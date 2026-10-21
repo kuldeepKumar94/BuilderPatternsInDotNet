@@ -1,0 +1,68 @@
+@page "/patterns"
+@using BuilderPatternsInDotNet.DesignPatterns.Creational
+@inject PatternCatalog Catalog
+
+<PageTitle>Pattern Explorer</PageTitle>
+
+<h1>Design Pattern Explorer</h1>
+<p class="lead">Select a pattern, then change the inputs to see a result rendered by an interactive Blazor component.</p>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <label class="form-label" for="pattern">Pattern</label>
+        <select id="pattern" class="form-select" @bind="selectedPattern">
+            @foreach (var pattern in Catalog.Patterns)
+            {
+                <option value="@pattern.Name">@pattern.Category — @pattern.Name</option>
+            }
+        </select>
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2 class="h5">@CurrentPattern.Name</h2>
+                <p>@CurrentPattern.Description</p>
+                <code>@CurrentPattern.Example</code>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card bg-light">
+            <div class="card-body">
+                @if (selectedPattern == "Builder")
+                {
+                    <h2 class="h5">Builder demo</h2>
+                    <label class="form-label" for="name">Product name</label>
+                    <input id="name" class="form-control mb-2" @bind="productName" />
+                    <label class="form-label" for="features">Features (comma separated)</label>
+                    <input id="features" class="form-control mb-3" @bind="features" />
+                    <button class="btn btn-primary" @onclick="BuildProduct">Build product</button>
+                    @if (builtProduct is not null)
+                    {
+                        <pre class="mt-3 mb-0">@builtProduct</pre>
+                    }
+                }
+                else
+                {
+                    <h2 class="h5">What to notice</h2>
+                    <p>@CurrentPattern.LearningNote</p>
+                    <p class="mb-0">This page is interactive: changing the selection updates component state without a full-page reload.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string selectedPattern = "Builder";
+    private string productName = "Learning laptop";
+    private string features = "SSD, 16 GB RAM";
+    private Product? builtProduct;
+
+    private PatternDescription CurrentPattern => Catalog.Patterns.First(p => p.Name == selectedPattern);
+
+    private void BuildProduct()
+    {
+        builtProduct = new ProductBuilder(productName)
+            .WithFeatures(features.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            .Build();
+    }
+}
